@@ -4,7 +4,7 @@ def getEntryExit(name):
     entryExitPairs = jmri.InstanceManager.getDefault(jmri.jmrit.entryexit.EntryExitPairs)
     destinations = entryExitPairs.getNamedBeanSet()
     for d in destinations:
-        if d.getUserName() == name or d.getSystemName() == name :
+        if d.getUserName() == name:
             return d
     return None
 
@@ -53,6 +53,7 @@ def attachListener(logix, listener):
 # Actual code for Dover Logix begins here
 
 doverLogix = [
+# IX:AUTO:0007C1  Dover 1
 {
     'guard' : [
         ('Sensor', 'Dover - Track 1', 'INACTIVE') 
@@ -71,6 +72,19 @@ doverLogix = [
         ('Sensor', 'IS5010', 'INACTIVE')
         ]
 },
+# IX:AUTO:0007C23  DOB Normal Track 3 
+{
+    'guard' : [
+        ('Sensor', 'IS5010', 'INACTIVE'),
+        ('Turnout', 'DOFW', 'NORMAL'),
+        ('Turnout', 'DODW', 'REVERSED')
+    ],
+    'formula' : '{0} and {1} and {2}',
+    'action' : [
+        ('Sensor', 'IS5003', 'INACTIVE')
+    ]
+ },
+ # IX:AUTO:0007C24  DOB Normal Track 4
 {
     'guard' : [
         ('Sensor', 'IS5010', 'INACTIVE'),
@@ -81,6 +95,26 @@ doverLogix = [
     'action' : [
         ('Sensor', 'IS5004', 'INACTIVE')
         ]
+},
+# IX:AUTO:0007C17  DOK Normal
+{
+    'guard' : [ ('Sensor', 'IS5015', 'INACTIVE')],
+    'formula' : '',
+    'action' : [
+        ('Turnout', 'DOK-xW', 'NORMAL'),
+        ('Sensor', 'IS5011', 'ACTIVE')
+    ]
+},
+# IX:AUTO:0007C37  Dover NX 3-11
+{
+    'guard' : [ 
+        ('EntryExit', 'Dover NX 3 (G-DO-4RA) to Dover NX 11 (G-DO-10R)', 'ACTIVE') 
+    ],
+    'formula' : '',
+    'action' : [ 
+        ('Sensor', 'IS5006', 'INACTIVE'),
+        ('Sensor', 'IS5007', 'INACTIVE')
+    ]
 }
 ]
 
