@@ -20,7 +20,7 @@ def attachListener(logix, listener):
         for j in l['guard']:
             otype = j[0]
             oid = j[1]
-            print 'Object type', otype, 'Object id', oid
+            print('Object type: ' + otype + ' Object id: ' + oid)
             if (otype, oid) in previouslyHandled:
                 print('Skipping ' + otype + ' ' + oid)
             else:
@@ -48,6 +48,12 @@ def attachListener(logix, listener):
                         print('Attached listener to entry exit' + oid)
                 else:
                     print ('Unknown object type ' + otype)
+
+# Sample event
+# java.beans.PropertyChangeEvent[propertyName=KnownState; oldValue=4; newValue=2; propagationId=null; source=IS5001]
+def handleEvent(event, logix):
+    print('Source: ' + event.getSource().getUserName())
+    print('New value: ', + event.getNewValue())
 
 #----------------------------------------------------------------
 # Actual code for Dover Logix begins here
@@ -120,7 +126,7 @@ doverLogix = [
 
 class DoverListener(java.beans.PropertyChangeListener):
     def propertyChange(self, event):
-        print(event)
+        handleEvent(event, doverLogix)
 
 def dover_virtual():
     dl = DoverListener()
