@@ -17,6 +17,8 @@ def attachListener(logix, listener):
     # listeners!
     previouslyHandled = set()
     for l in logix:
+        guardSet = set()
+        l['guardSet'] = guardSet
         for j in l['guard']:
             otype = j[0]
             oid = j[1]
@@ -31,6 +33,7 @@ def attachListener(logix, listener):
                         print('Could not locate sensor ' + oid)
                     else:
                         sensor.addPropertyChangeListener(listener)
+                        guardSet.add(sensor.getSystemName())
                         print('Attached listener to sensor ' + oid)
                 elif otype == 'Turnout':
                     turnout = turnouts.getTurnout(oid)
@@ -38,6 +41,7 @@ def attachListener(logix, listener):
                         print('Could not locate turnout ' + oid)
                     else:
                         turnout.addPropertyChangeListener(listener)
+                        guardSet.add(turnout.getSystemName())
                         print('Attached listener to turnout' + oid)
                 elif otype == 'EntryExit':
                     entryExit = getEntryExit(oid)
@@ -45,15 +49,53 @@ def attachListener(logix, listener):
                         print('Could not locate entry exit ' + oid)
                     else:
                         entryExit.addPropertyChangeListener(listener)
+                        guardSet.add(entryExit.getSystemName())
                         print('Attached listener to entry exit' + oid)
                 else:
                     print ('Unknown object type ' + otype)
 
+def evaluateGuard(guard):
+    otype = guard[0]
+    oid = guard[1]
+    ostate = guard[2]
+    if otype == 'Sensor':
+        sensor = sensors.getSensor(oid)
+        return sensor.getKnownState() == ostate
+    elif otype == 'Turnout':
+        turnout = turnouts.getTurnout(oid)
+        return turnout.getKnownState() == ostate
+    elif otype == 'EntryExit':
+        entryExit = getEntryExit(oid)
+        return entryExit.getKnownState() == ostate
+    return False
+
+def evaluateGuards(guards, formula):
+    if len(guard) == 1:
+        return evaluateGuard(guards[0])
+    truthValues = []
+    for g in guard:
+        truthValues.append(evaluateGuard(g))
+    f = formula
+    for i, v in enumerate(truthValues):
+        f = f.replace(str(i), truthValues[i])
+    value = eval(f)
+    return value
+
+
+
 # Sample event
 # java.beans.PropertyChangeEvent[propertyName=KnownState; oldValue=4; newValue=2; propagationId=null; source=IS5001]
 def handleEvent(event, logix):
-    print('Source: ' + event.getSource().getUserName())
+    sname = event.getSource().getSystemName()
+    print('Source: ' + sname)
     print('New value: ', + event.getNewValue())
+    for i, l in enumerate(logix):
+        print(l['guardSet'])
+        if sname in l['guardSet']:
+            print('Event captured by ' + str(i))
+            # Now evaluate the actual conditions
+            f
+
 
 #----------------------------------------------------------------
 # Actual code for Dover Logix begins here
