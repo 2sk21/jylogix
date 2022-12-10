@@ -54,34 +54,48 @@ def attachListener(logix, listener):
                 else:
                     print ('Unknown object type ' + otype)
 
+def convertStateToString(state):
+    if state == 2:
+        return 'ACTIVE'
+    elif state == 4:
+        return 'INACTIVE'
+    else:
+        return ''
+
 def evaluateGuard(guard):
     otype = guard[0]
     oid = guard[1]
     ostate = guard[2]
     if otype == 'Sensor':
         sensor = sensors.getSensor(oid)
-        return sensor.getKnownState() == ostate
+        state = convertStateToString(sensor.getKnownState())
+        print( 'Sensor state is: ' + state)
+        print( 'ostate: ' + ostate)
+        return state == ostate
     elif otype == 'Turnout':
         turnout = turnouts.getTurnout(oid)
-        return turnout.getKnownState() == ostate
+        state = convertStateToString(turnout.getKnownState())
+        print( 'Turnout state is: ' + state)
+        print( 'ostate: ' + ostate)
+        return state == ostate
     elif otype == 'EntryExit':
         entryExit = getEntryExit(oid)
-        return entryExit.getKnownState() == ostate
+        state = convertStateToString(entryExit.getKnownState())
+        print('EntryExit state is: ' + state)
+        print( 'ostate: ' + ostate)
+        return state == ostate
     return False
 
 def evaluateGuards(guards, formula):
-    if len(guard) == 1:
+    if len(guards) == 1:
         return evaluateGuard(guards[0])
     truthValues = []
-    for g in guard:
-        truthValues.append(evaluateGuard(g))
-    f = formula
-    for i, v in enumerate(truthValues):
-        f = f.replace(str(i), truthValues[i])
+    for g in guards:
+        truthValues.append(str(evaluateGuard(g)))
+    f = formula % tuple(truthValues)
+    print('Final formula: ' + f)
     value = eval(f)
     return value
-
-
 
 # Sample event
 # java.beans.PropertyChangeEvent[propertyName=KnownState; oldValue=4; newValue=2; propagationId=null; source=IS5001]
@@ -94,7 +108,8 @@ def handleEvent(event, logix):
         if sname in l['guardSet']:
             print('Event captured by ' + str(i))
             # Now evaluate the actual conditions
-            f
+            evaluation = evaluateGuards(l['guard'], l['formula'])
+            print('Evaluated to: ' + str(evaluation))
 
 
 #----------------------------------------------------------------
@@ -127,7 +142,7 @@ doverLogix = [
         ('Turnout', 'DOFW', 'NORMAL'),
         ('Turnout', 'DODW', 'REVERSED')
     ],
-    'formula' : '{0} and {1} and {2}',
+    'formula' : '%s and %s and %s',
     'action' : [
         ('Sensor', 'IS5003', 'INACTIVE')
     ]
@@ -139,7 +154,7 @@ doverLogix = [
         ('Turnout', 'DOFW', 'REVERSED'),
         ('Turnout', 'DOEW', 'NORMAL')
     ],
-    'formula' : '{0} and {1} and {2}',
+    'formula' : '%s and %s and %s',
     'action' : [
         ('Sensor', 'IS5004', 'INACTIVE')
         ]
