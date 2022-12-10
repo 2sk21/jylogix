@@ -80,7 +80,7 @@ def evaluateGuard(guard):
         return state == ostate
     elif otype == 'EntryExit':
         entryExit = getEntryExit(oid)
-        state = convertStateToString(entryExit.getKnownState())
+        state = convertStateToString(entryExit.getState())
         print('EntryExit state is: ' + state)
         print( 'ostate: ' + ostate)
         return state == ostate
