@@ -106,6 +106,33 @@ def evaluateGuards(guards, formula):
     value = eval(f)
     return value
 
+def takeActions(actions):
+    for (a_type, a_oid, a_state) in actions:
+        if a_type == 'Turnout':
+            t = turnouts.getTurnout(a_oid)
+            if t is None:
+                print('ERROR unknown turnout id ' + a_oid)
+            else:
+                if a_state == 'NORMAL':
+                    t.state = CLOSED
+                elif a_state == 'REVERSED':
+                    t.state = THROWN
+                else:
+                    print('ERROR unknown turnout state ' + a_state)
+                print( 'Setting turnout ' + a_oid + ' to ' + a_state)
+        elif a_type == 'Sensor':
+            s = sensors.getSensor(a_oid)
+            if s is None:
+                print('ERROR unknown sensor id' + a_oid)
+            else:
+                if a_state == 'ACTIVE':
+                    s.state = ACTIVE
+                elif a_state == 'INACTIVE':
+                    s.state = INACTIVE
+                else:
+                    print('ERROR unknown sensor state ' + a_state)
+                print( 'Setting sensor ' + a_oid + ' to ' + a_state )
+
 # Sample event
 # java.beans.PropertyChangeEvent[propertyName=KnownState; oldValue=4; newValue=2; propagationId=null; source=IS5001]
 def handleEvent(event, logix):
@@ -118,6 +145,8 @@ def handleEvent(event, logix):
             # Now evaluate the actual conditions
             evaluation = evaluateGuards(l['guard'], l['formula'])
             print('Evaluated to: ' + str(evaluation))
+            if evaluation:
+                takeActions(l['action'])
         else:
             print('Event not captured by logix ' + str(i))
 
@@ -144,6 +173,25 @@ doverLogix = [
         ('Turnout', 'DOBe-xbW', 'NORMAL'),
         ('Sensor', 'IS5010', 'INACTIVE')
         ]
+},
+# IX:AUTO:0007C3  Dover 2
+{
+    'guard' : [ 
+        ('Sensor', 'IS5002', 'INACTIVE')
+    ],
+    'formula' : '',
+    'action' : [
+        ('Turnout', 'DOBe-xbW', 'NORMAL'),
+        ('Turnout', 'DOCW', 'REVERSED'),
+        ('Turnout', 'DODW', 'NORMAL'),
+        ('Turnout', 'DOFW', 'NORMAL'),
+        ('Sensor', 'IS5001', 'ACTIVE'),
+        ('Sensor', 'IS5003', 'ACTIVE'),
+        ('Sensor', 'IS5004', 'ACTIVE'),
+        ('Sensor', 'IS5005', 'ACTIVE'),
+        ('Sensor', 'IS5007', 'ACTIVE'),
+        ('Sensor', 'IS5010', 'INACTIVE')
+    ]
 },
 # IX:AUTO:0007C23  DOB Normal Track 3 
 {
