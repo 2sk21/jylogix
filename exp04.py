@@ -19,42 +19,54 @@ def attachListener(logix, listener):
     for l in logix:
         guardSet = set()
         l['guardSet'] = guardSet
-        for j in l['guard']:
-            otype = j[0]
-            oid = j[1]
-            print('Object type: ' + otype + ' Object id: ' + oid)
+        for g in l['guard']:
+            otype = g[0]
+            oid = g[1]
+            #print('Object type: ' + otype + ' Object id: ' + oid)
             if (otype, oid) in previouslyHandled:
-                print('Skipping ' + otype + ' ' + oid)
+                #print('Skipping ' + otype + ' ' + oid)
+                pass
             else:
                 previouslyHandled.add((otype, oid))
                 if otype == 'Sensor':
                     sensor = sensors.getSensor(oid)
                     if sensor is None:
-                        print('Could not locate sensor ' + oid)
+                        print('ERROR Could not locate sensor ' + oid)
                     else:
                         sensor.addPropertyChangeListener(listener)
                         guardSet.add(sensor.getSystemName())
-                        print('Attached listener to sensor ' + oid)
+                        #print('Attached listener to sensor ' + oid)
                 elif otype == 'Turnout':
                     turnout = turnouts.getTurnout(oid)
                     if turnout is None:
-                        print('Could not locate turnout ' + oid)
+                        print('ERROR Could not locate turnout ' + oid)
                     else:
                         turnout.addPropertyChangeListener(listener)
                         guardSet.add(turnout.getSystemName())
-                        print('Attached listener to turnout' + oid)
+                        #print('Attached listener to turnout' + oid)
                 elif otype == 'EntryExit':
                     entryExit = getEntryExit(oid)
                     if entryExit is None:
-                        print('Could not locate entry exit ' + oid)
+                        print('ERROR Could not locate entry exit ' + oid)
                     else:
                         entryExit.addPropertyChangeListener(listener)
                         guardSet.add(entryExit.getSystemName())
-                        print('Attached listener to entry exit' + oid)
+                        #print('Attached listener to entry exit' + oid)
                 else:
-                    print ('Unknown object type ' + otype)
+                    print ('ERROR Unknown object type ' + otype)
+    print('Guard sets')
+    for (i, l) in enumerate(logix):
+        guards = ' '.join(l['guardSet'])
+        print('Logix ' + str(i) + ' ' + guards)
 
-def convertStateToString(state):
+def convertStateToString(state, objectType):
+    if objectType == 'Turnout':
+        if state == 2:
+            return 'NORMAL'
+        elif state == 4:
+            return 'REVERSED'
+        else:
+            return ''
     if state == 2:
         return 'ACTIVE'
     elif state == 4:
@@ -65,25 +77,22 @@ def convertStateToString(state):
 def evaluateGuard(guard):
     otype = guard[0]
     oid = guard[1]
-    ostate = guard[2]
+    triggerState = guard[2]
     if otype == 'Sensor':
         sensor = sensors.getSensor(oid)
-        state = convertStateToString(sensor.getKnownState())
-        print( 'Sensor state is: ' + state)
-        print( 'ostate: ' + ostate)
-        return state == ostate
+        state = convertStateToString(sensor.getKnownState(), otype)
+        print( oid + ' ' + state + ' == ' + triggerState + '?')
+        return state == triggerState
     elif otype == 'Turnout':
         turnout = turnouts.getTurnout(oid)
-        state = convertStateToString(turnout.getKnownState())
-        print( 'Turnout state is: ' + state)
-        print( 'ostate: ' + ostate)
-        return state == ostate
+        state = convertStateToString(turnout.getKnownState(), otype)
+        print( oid + ' ' + state + ' == ' + triggerState + '?')
+        return state == triggerState
     elif otype == 'EntryExit':
         entryExit = getEntryExit(oid)
-        state = convertStateToString(entryExit.getState())
-        print('EntryExit state is: ' + state)
-        print( 'ostate: ' + ostate)
-        return state == ostate
+        state = convertStateToString(entryExit.getState(), otype)
+        print( oid + ' ' + state + ' == ' + triggerState + '?')
+        return state == triggerState
     return False
 
 def evaluateGuards(guards, formula):
@@ -104,12 +113,13 @@ def handleEvent(event, logix):
     print('Source: ' + sname)
     print('New value: ', + event.getNewValue())
     for i, l in enumerate(logix):
-        print(l['guardSet'])
         if sname in l['guardSet']:
-            print('Event captured by ' + str(i))
+            print('Event captured by logix ' + str(i))
             # Now evaluate the actual conditions
             evaluation = evaluateGuards(l['guard'], l['formula'])
             print('Evaluated to: ' + str(evaluation))
+        else:
+            print('Event not captured by logix ' + str(i))
 
 
 #----------------------------------------------------------------
