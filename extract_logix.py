@@ -104,7 +104,7 @@ def main(args):
     root = tree.getroot()
     logixs = getAllLogix(root)
     for logix in logixs:
-        print('======')
+        logixList = []
         logixUserName = ''
         logixSystemName = ''
         for child in logix:
@@ -114,9 +114,12 @@ def main(args):
                 logixSystemName = child.text
             elif child.tag == 'logixConditional':
                 conditionalSystemName = child.attrib['systemName']
-                iConditional = processLogixConditional(root, logixSystemName, logixUserName, conditionalSystemName)
-                print(conditionalSystemName)
-                pprint(iConditional, indent=4)
+                conditional = processLogixConditional(root, logixSystemName, logixUserName, conditionalSystemName)
+                logixList.append(conditional)
+        fileName = logixUserName + '.py'
+        fileName = fileName.replace('/', ' ')
+        with open(fileName, 'w') as fp:
+            pprint(logixList, indent=4, stream=fp)
 
 
 if __name__ == '__main__':
