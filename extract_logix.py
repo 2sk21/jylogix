@@ -77,12 +77,15 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
             caType = child.attrib['type']
             caName = child.attrib['systemName']
             caData = child.attrib['data']
+            # See DefaultConditionalAction.java
             if caType == '2':
                 # Set turnout
                 if caData == '2':
                     actions.append(('Turnout', caName, 'NORMAL'))
                 elif caData == '4':
                     actions.append(('Turnout', caName, 'REVERSED'))
+                elif caData == '8':
+                    actions.append(('Turnout', caName, 'TOGGLE'))
                 else:
                     print('Error unknown data for turnout action: ' + caData, logixSystemName, conditionalSystemName, csvName)
             elif caType == '9':
