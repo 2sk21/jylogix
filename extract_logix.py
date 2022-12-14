@@ -72,7 +72,7 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                 guards.append(('EntryExit', csvName, 'INACTIVE'))
                 formula = addToFormula(formula, operator)
             else:
-                print('ERROR unsuported csvType: ', csvType, logixSystemName, csvName)
+                print('ERROR unsuported csvType: ', csvType, logixSystemName, conditionalSystemName, csvName)
         elif child.tag == 'conditionalAction':
             caType = child.attrib['type']
             caName = child.attrib['systemName']
@@ -84,15 +84,17 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                 elif caData == '4':
                     actions.append(('Turnout', caName, 'REVERSED'))
                 else:
-                    print('Error unknown data for turnout action: ' + caData)
+                    print('Error unknown data for turnout action: ' + caData, logixSystemName, conditionalSystemName, csvName)
             elif caType == '9':
                 # Set sensor
                 if caData == '2':
                     actions.append(('Sensor', caName, 'ACTIVE'))
                 elif caData == '4':
                     actions.append(('Sensor', caName, 'INACTIVE'))
+                elif caData == '8':
+                    actions.append(('Sensor', caName, 'TOGGLE'))
                 else:
-                    print('Error unknown data for sensor action: ' + caData)
+                    print('Error unknown data for sensor action: ' + caData, logixSystemName, conditionalSystemName, csvName)
     if len(guards) == 1:
         formula = ''
     result = {
