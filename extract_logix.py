@@ -32,7 +32,7 @@ def addToFormula(formula, operator):
 
 def processLogixConditional(root, logixSystemName, logixUserName, conditionalSystemName):
     conditional = getConditionalBySystemName(root, conditionalSystemName)
-    print( conditional.attrib['userName'], conditional.attrib['systemName'])
+    #print( conditional.attrib['userName'], conditional.attrib['systemName'])
     guards = []
     formula = ''
     actions = []
@@ -41,6 +41,7 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
             csvType = child.attrib['type']
             operator = child.attrib['operator']
             csvName = child.attrib['systemName']
+            csvDataString = child.attrib['dataString']
             # See the file Conditional.java in JMRI for the magic numbers used here
             if csvType == '1':
                 # Sensor goes active
@@ -58,6 +59,10 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                 # Turnout is closed
                 guards.append(('Turnout', csvName, 'NORMAL'))
                 formula = addToFormula(formula, operator)
+            elif csvType == '30':
+                # Signal mast aspect equals
+                guards.append(('SignalMastAspect', csvName, csvDataString))
+                formula = addToFormula(formula, operator)
             elif csvType == '35':
                 # EntryExit is active
                 guards.append(('EntryExit', csvName, 'ACTIVE'))
@@ -67,7 +72,7 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                 guards.append(('EntryExit', csvName, 'INACTIVE'))
                 formula = addToFormula(formula, operator)
             else:
-                print('ERROR unsuported csvType: ', csvType)
+                print('ERROR unsuported csvType: ', csvType, logixSystemName, csvName)
         elif child.tag == 'conditionalAction':
             caType = child.attrib['type']
             caName = child.attrib['systemName']
@@ -119,7 +124,7 @@ def main(args):
         fileName = logixUserName + '.py'
         fileName = fileName.replace('/', ' ')
         with open(fileName, 'w') as fp:
-            pprint(logixList, indent=4, stream=fp)
+            pprint(logixList, indent=4, stream=fp, sort_dicts=False)
 
 
 if __name__ == '__main__':
