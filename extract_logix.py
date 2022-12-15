@@ -103,7 +103,8 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
     result = {
         'guard' : guards,
         'formula' : formula,
-        'action' : actions
+        'action' : actions,
+        'id' : logixSystemName + ' ' + conditionalSystemName
     }
     return result
 
