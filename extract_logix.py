@@ -127,10 +127,20 @@ def main(args):
                 conditionalSystemName = child.attrib['systemName']
                 conditional = processLogixConditional(root, logixSystemName, logixUserName, conditionalSystemName)
                 logixList.append(conditional)
-        fileName = logixUserName + '.py'
-        fileName = fileName.replace('/', ' ')
+        logixVarName = logixUserName.replace('/', '')
+        logixVarName = logixVarName.replace(' ', '')
+        objectVarName = logixVarName + 'Listener'
+        fileName = logixVarName + '.py'
         with open(fileName, 'w') as fp:
+            fp.write(logixVarName + '=')
             pprint(logixList, indent=4, stream=fp, sort_dicts=False)
+            fp.write('\n')
+            stmt = '%s = JylogixListener(%s)\n' % (objectVarName, logixVarName)
+            fp.write(stmt)
+            stmt = '%s.attach()\n' % objectVarName
+            fp.write(stmt)
+            stmt = '%s.handleStartup()\n' % objectVarName
+            fp.write(stmt)
 
 
 if __name__ == '__main__':
