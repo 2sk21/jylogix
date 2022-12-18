@@ -99,6 +99,10 @@ class JylogixListener(java.beans.PropertyChangeListener):
             state = self.convertStateToString(entryExit.getState(), otype)
             print( oid + ' ' + state + ' == ' + triggerState + '?')
             return state == triggerState
+        elif otype == 'SignalMastAspect':
+            signalMast = masts.getSignalMast(oid)
+            print( oid + ' ' + signalMast.getAspect() + ' == ' + triggerState + '?')
+            return signalMast.getAspect() == triggerState
         return False
 
     def evaluateGuards(self, guards, formula):
@@ -123,6 +127,11 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         t.state = CLOSED
                     elif a_state == 'REVERSED':
                         t.state = THROWN
+                    elif a_state == 'TOGGLE':
+                        if t.state == THROWN:
+                            t.state = CLOSED
+                        else:
+                            t.state = THROWN
                     else:
                         print('ERROR unknown turnout state ' + a_state)
                     print( 'Action setting turnout ' + a_oid + ' to ' + a_state)
@@ -135,9 +144,15 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         s.state = ACTIVE
                     elif a_state == 'INACTIVE':
                         s.state = INACTIVE
+                    elif a_state == 'TOGGLE':
+                        if s.state == ACTIVE:
+                            s.state = INACTIVE
+                        else:
+                            s.state = ACTIVE
                     else:
                         print('ERROR unknown sensor state ' + a_state)
                     print( 'Action setting sensor ' + a_oid + ' to ' + a_state )
+
 
     # This method is required by java.beans.PropertyChangeListener
     def propertyChange(self, event):
