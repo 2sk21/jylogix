@@ -70,7 +70,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
             if state == 2:
                 return 'NORMAL'
             elif state == 4:
-                return 'REVERSED'
+                return 'REVERSE'
             else:
                 return ''
         if state == 2:
@@ -125,7 +125,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                 else:
                     if a_state == 'NORMAL':
                         t.state = CLOSED
-                    elif a_state == 'REVERSED':
+                    elif a_state == 'REVERSE':
                         t.state = THROWN
                     elif a_state == 'TOGGLE':
                         if t.state == THROWN:
@@ -152,6 +152,26 @@ class JylogixListener(java.beans.PropertyChangeListener):
                     else:
                         print('ERROR unknown sensor state ' + a_state)
                     print( 'Action setting sensor ' + a_oid + ' to ' + a_state )
+            elif a_type == 'SignalMast':
+                signalMast = masts.getSignalMast(a_oid)
+                if signalMast is None:
+                    print('ERROR unknown signal mast ' + a_oid)
+                else:
+                    signalMast.setAspect(a_state)
+                print('Action setting signal mast ' + a_oid + ' to ' + a_state)
+            elif a_type == 'Light':
+                l = lights.getLight(a_oid)
+                if l is None:
+                    print('Error unknown light: ' + a_oid)
+                else:
+                    if a_state == 'ACTIVE':
+                        l.setState(ON)
+                    elif a_state == 'INACTIVE':
+                        l.setState(OFF)
+                    else:
+                        print('ERROR Unknown light state ' + a_state)
+            else:
+                print('ERROR unhandled action type ' + a_type)
 
 
     # This method is required by java.beans.PropertyChangeListener

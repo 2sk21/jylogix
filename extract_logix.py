@@ -53,7 +53,7 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                 formula = addToFormula(formula, operator)
             elif csvType == '3':
                 # Turnout is thrown
-                guards.append(('Turnout', csvName, 'REVERSED'))
+                guards.append(('Turnout', csvName, 'REVERSE'))
                 formula = addToFormula(formula, operator)
             elif csvType == '4':
                 # Turnout is closed
@@ -77,13 +77,14 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
             caType = child.attrib['type']
             caName = child.attrib['systemName']
             caData = child.attrib['data']
+            caString = child.attrib['string']
             # See DefaultConditionalAction.java
             if caType == '2':
                 # Set turnout
                 if caData == '2':
                     actions.append(('Turnout', caName, 'NORMAL'))
                 elif caData == '4':
-                    actions.append(('Turnout', caName, 'REVERSED'))
+                    actions.append(('Turnout', caName, 'REVERSE'))
                 elif caData == '8':
                     actions.append(('Turnout', caName, 'TOGGLE'))
                 else:
@@ -98,6 +99,21 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                     actions.append(('Sensor', caName, 'TOGGLE'))
                 else:
                     print('Error unknown data for sensor action: ' + caData, logixSystemName, conditionalSystemName, csvName)
+            elif caType == '37':
+                # Set signal mast aspect
+                actions.append(('SignalMast', caName, caString))
+            elif caType == '11':
+                # Set light
+                if caData == '2':
+                    actions.append(('Light', caName, 'ACTIVE'))
+                elif caData == '4':
+                    actions.append(('Light', caName, 'INACTIVE'))
+                elif caData == '8':
+                    actions.append(('Light', caName, 'TOGGLE'))
+                else:
+                    print('Error unknown data for light action: ' + caData, logixSystemName, conditionalSystemName, csvName)
+            else:
+                print('ERROR unhandled conditional action: ', caType, logixSystemName, conditionalSystemName)
     if len(guards) == 1:
         formula = ''
     result = {
