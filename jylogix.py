@@ -33,7 +33,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         else:
                             sensor.addPropertyChangeListener(self)
                             previouslyHandled.add((otype, oid))
-                            print('Attached listener to sensor ' + oid)
+                            #print('Attached listener to sensor ' + oid)
                 elif otype == 'Turnout':
                     turnout = turnouts.getTurnout(oid)
                     if turnout is None:
@@ -45,7 +45,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         else:
                             turnout.addPropertyChangeListener(self)
                             previouslyHandled.add((otype, oid))
-                            print('Attached listener to turnout' + oid)
+                            #print('Attached listener to turnout' + oid)
                 elif otype == 'EntryExit':
                     entryExit = self.getEntryExit(oid)
                     if entryExit is None:
@@ -57,13 +57,13 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         else:
                             entryExit.addPropertyChangeListener(self)
                             previouslyHandled.add((otype, oid))
-                            print('Attached listener to entry exit' + oid)
+                            #print('Attached listener to entry exit' + oid)
                 else:
                     print ('ERROR Unknown object type ' + otype)
         print('Guard sets')
         for (i, l) in enumerate(self.logix):
             guards = ' '.join(l['guardSet'])
-            print('Conditional ' + l['id'] + ' Guards:' + guards)
+            #print('Conditional ' + l['id'] + ' Guards:' + guards)
     
     def convertStateToString(self, state, objectType):
         if objectType == 'Turnout':
@@ -87,21 +87,21 @@ class JylogixListener(java.beans.PropertyChangeListener):
         if otype == 'Sensor':
             sensor = sensors.getSensor(oid)
             state = self.convertStateToString(sensor.getKnownState(), otype)
-            print( oid + ' ' + state + ' == ' + triggerState + '?')
+            #print( oid + ' ' + state + ' == ' + triggerState + '?')
             return state == triggerState
         elif otype == 'Turnout':
             turnout = turnouts.getTurnout(oid)
             state = self.convertStateToString(turnout.getKnownState(), otype)
-            print( oid + ' ' + state + ' == ' + triggerState + '?')
+            #print( oid + ' ' + state + ' == ' + triggerState + '?')
             return state == triggerState
         elif otype == 'EntryExit':
             entryExit = self.getEntryExit(oid)
             state = self.convertStateToString(entryExit.getState(), otype)
-            print( oid + ' ' + state + ' == ' + triggerState + '?')
+            #print( oid + ' ' + state + ' == ' + triggerState + '?')
             return state == triggerState
         elif otype == 'SignalMastAspect':
             signalMast = masts.getSignalMast(oid)
-            print( oid + ' ' + signalMast.getAspect() + ' == ' + triggerState + '?')
+            #print( oid + ' ' + signalMast.getAspect() + ' == ' + triggerState + '?')
             return signalMast.getAspect() == triggerState
         return False
 
@@ -112,11 +112,11 @@ class JylogixListener(java.beans.PropertyChangeListener):
         for g in guards:
             truthValues.append(str(self.evaluateGuard(g)))
         f = formula % tuple(truthValues)
-        print('Final formula: ' + f)
+        #print('Final formula: ' + f)
         value = eval(f)
         return value
 
-    def takeActions(self, actions):
+    def takeActions(self, actions, logixId):
         for (a_type, a_oid, a_state) in actions:
             if a_type == 'Turnout':
                 t = turnouts.getTurnout(a_oid)
@@ -134,7 +134,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                             t.state = THROWN
                     else:
                         print('ERROR unknown turnout state ' + a_state)
-                    print( 'Action setting turnout ' + a_oid + ' to ' + a_state)
+                    print( 'Logix ' + logixId + ' Action set turnout ' + a_oid + ' to ' + a_state)
             elif a_type == 'Sensor':
                 s = sensors.getSensor(a_oid)
                 if s is None:
@@ -151,14 +151,14 @@ class JylogixListener(java.beans.PropertyChangeListener):
                             s.state = ACTIVE
                     else:
                         print('ERROR unknown sensor state ' + a_state)
-                    print( 'Action setting sensor ' + a_oid + ' to ' + a_state )
+                    print( 'Logix ' + logixId + ' action set sensor ' + a_oid + ' to ' + a_state )
             elif a_type == 'SignalMast':
                 signalMast = masts.getSignalMast(a_oid)
                 if signalMast is None:
                     print('ERROR unknown signal mast ' + a_oid)
                 else:
                     signalMast.setAspect(a_state)
-                print('Action setting signal mast ' + a_oid + ' to ' + a_state)
+                print('Logix ' + logixId + ' action setting signal mast ' + a_oid + ' to ' + a_state)
             elif a_type == 'Light':
                 l = lights.getLight(a_oid)
                 if l is None:
@@ -170,6 +170,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                         l.setState(OFF)
                     else:
                         print('ERROR Unknown light state ' + a_state)
+                print( 'Logix ' + logixId + ' action set light ' + a_oid + ' to ' + a_state)
             else:
                 print('ERROR unhandled action type ' + a_type)
 
@@ -177,15 +178,16 @@ class JylogixListener(java.beans.PropertyChangeListener):
     # This method is required by java.beans.PropertyChangeListener
     def propertyChange(self, event):
         sname = event.getSource().getSystemName()
-        print('Event source: ' + sname + ' New value ' + str(event.getNewValue()))
+        #print('Event source: ' + sname + ' New value ' + str(event.getNewValue()))
         for l in self.logix:
             if sname in l['guardSet']:
-                print('Event captured by logix ' + l['id'])
+                #print('Event captured by logix ' + l['id'])
                 # Now evaluate the actual conditions
                 evaluation = self.evaluateGuards(l['guard'], l['formula'])
-                print('Evaluated to: ' + str(evaluation))
+                #print('Evaluated to: ' + str(evaluation))
                 if evaluation:
-                    self.takeActions(l['action'])
+                    print(' Logix ' + l['id'] + ' activated')
+                    self.takeActions(l['action'], l['id'])
             else:
                 #print('Event not captured by logix ' + str(i))
                 pass
@@ -196,4 +198,4 @@ class JylogixListener(java.beans.PropertyChangeListener):
             evaluation = self.evaluateGuards(l['guard'], l['formula'])
             print('Logix startup ' + l['id'] + ' evaluated to: ' + str(evaluation))
             if evaluation:
-                self.takeActions(l['action'])
+                self.takeActions(l['action'], l['id'])
