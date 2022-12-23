@@ -147,7 +147,7 @@ def main(args):
         logixVarName = logixVarName.replace(' ', '')
         objectVarName = logixVarName + 'Listener'
         fileName = logixVarName + '.py'
-        with open(fileName, 'w') as fp:
+        with open(args.scriptDir + '/' + fileName, 'w') as fp:
             fp.write(logixVarName + '=')
             pprint(logixList, indent=4, stream=fp, sort_dicts=False)
             fp.write('\n')
@@ -162,5 +162,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deconstruct a JMRI XML formatted layout description file')
     parser.add_argument('inputFile', type=str, help='JMRI layout description file in XML format')
+    parser.add_argument('--scriptDir', type=str, default='.', help='Directory to store the generated script files.')
     args = parser.parse_args()
     main(args)
