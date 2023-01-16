@@ -74,6 +74,17 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
             else:
                 print('ERROR unsuported csvType: ', csvType, logixSystemName, conditionalSystemName, csvName)
         elif child.tag == 'conditionalAction':
+            # See Conditional.java
+            # static final int ACTION_OPTION_ON_CHANGE_TO_TRUE = 1;
+            # static final int ACTION_OPTION_ON_CHANGE_TO_FALSE = 2;
+            # static final int ACTION_OPTION_ON_CHANGE = 3;
+            caOption = child.attrib['option']
+            if caOption == '1':
+                optionModifier = 'if_true'
+            elif caOption == '2':
+                optionModifier = 'if_false'
+            elif caOption == '3':
+                optionModifier = 'if_change'
             caType = child.attrib['type']
             caName = child.attrib['systemName']
             caData = child.attrib['data']
@@ -82,34 +93,34 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
             if caType == '2':
                 # Set turnout
                 if caData == '2':
-                    actions.append(('Turnout', caName, 'NORMAL'))
+                    actions.append(('Turnout', caName, 'NORMAL', optionModifier))
                 elif caData == '4':
-                    actions.append(('Turnout', caName, 'REVERSE'))
+                    actions.append(('Turnout', caName, 'REVERSE', optionModifier))
                 elif caData == '8':
-                    actions.append(('Turnout', caName, 'TOGGLE'))
+                    actions.append(('Turnout', caName, 'TOGGLE', optionModifier))
                 else:
                     print('Error unknown data for turnout action: ' + caData, logixSystemName, conditionalSystemName, csvName)
             elif caType == '9':
                 # Set sensor
                 if caData == '2':
-                    actions.append(('Sensor', caName, 'ACTIVE'))
+                    actions.append(('Sensor', caName, 'ACTIVE', optionModifier))
                 elif caData == '4':
-                    actions.append(('Sensor', caName, 'INACTIVE'))
+                    actions.append(('Sensor', caName, 'INACTIVE', optionModifier))
                 elif caData == '8':
-                    actions.append(('Sensor', caName, 'TOGGLE'))
+                    actions.append(('Sensor', caName, 'TOGGLE', optionModifier))
                 else:
                     print('Error unknown data for sensor action: ' + caData, logixSystemName, conditionalSystemName, csvName)
             elif caType == '37':
                 # Set signal mast aspect
-                actions.append(('SignalMast', caName, caString))
+                actions.append(('SignalMast', caName, caString, optionModifier))
             elif caType == '11':
                 # Set light
                 if caData == '2':
-                    actions.append(('Light', caName, 'ACTIVE'))
+                    actions.append(('Light', caName, 'ACTIVE', optionModifier))
                 elif caData == '4':
-                    actions.append(('Light', caName, 'INACTIVE'))
+                    actions.append(('Light', caName, 'INACTIVE', optionModifier))
                 elif caData == '8':
-                    actions.append(('Light', caName, 'TOGGLE'))
+                    actions.append(('Light', caName, 'TOGGLE', optionModifier))
                 else:
                     print('Error unknown data for light action: ' + caData, logixSystemName, conditionalSystemName, csvName)
             else:

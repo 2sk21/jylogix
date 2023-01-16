@@ -116,9 +116,15 @@ class JylogixListener(java.beans.PropertyChangeListener):
         value = eval(f)
         return value
 
-    def takeActions(self, actions, logixId):
-        for (a_type, a_oid, a_state) in actions:
-            if a_type == 'Turnout':
+    def interpretOption(self, option, evaluation):
+        return (option == 'if_change') or (option == 'if_true' and evaluation) or (option == 'if_false' and not evaluation)
+
+    def takeActions(self, actions, logixId, evaluation):
+        #print '----'
+        #print 'Entered takeActions. Evaluation is ', evaluation
+        for (a_type, a_oid, a_state, a_option) in actions:
+            #print 'Checking action', a_type, a_oid, a_state, a_option
+            if a_type == 'Turnout' and self.interpretOption(a_option, evaluation):
                 t = turnouts.getTurnout(a_oid)
                 if t is None:
                     print('ERROR unknown turnout id ' + a_oid)
@@ -135,7 +141,7 @@ class JylogixListener(java.beans.PropertyChangeListener):
                     else:
                         print('ERROR unknown turnout state ' + a_state)
                     print( 'Logix ' + logixId + ' Action set turnout ' + a_oid + ' to ' + a_state)
-            elif a_type == 'Sensor':
+            elif a_type == 'Sensor' and self.interpretOption(a_option, evaluation):
                 s = sensors.getSensor(a_oid)
                 if s is None:
                     print('ERROR unknown sensor id' + a_oid)
@@ -152,14 +158,14 @@ class JylogixListener(java.beans.PropertyChangeListener):
                     else:
                         print('ERROR unknown sensor state ' + a_state)
                     print( 'Logix ' + logixId + ' action set sensor ' + a_oid + ' to ' + a_state )
-            elif a_type == 'SignalMast':
+            elif a_type == 'SignalMast' and self.interpretOption(a_option, evaluation):
                 signalMast = masts.getSignalMast(a_oid)
                 if signalMast is None:
                     print('ERROR unknown signal mast ' + a_oid)
                 else:
                     signalMast.setAspect(a_state)
                 print('Logix ' + logixId + ' action setting signal mast ' + a_oid + ' to ' + a_state)
-            elif a_type == 'Light':
+            elif a_type == 'Light' and self.interpretOption(a_option, evaluation):
                 l = lights.getLight(a_oid)
                 if l is None:
                     print('Error unknown light: ' + a_oid)
@@ -171,8 +177,6 @@ class JylogixListener(java.beans.PropertyChangeListener):
                     else:
                         print('ERROR Unknown light state ' + a_state)
                 print( 'Logix ' + logixId + ' action set light ' + a_oid + ' to ' + a_state)
-            else:
-                print('ERROR unhandled action type ' + a_type)
 
 
     # This method is required by java.beans.PropertyChangeListener
@@ -181,13 +185,11 @@ class JylogixListener(java.beans.PropertyChangeListener):
         #print('Event source: ' + sname + ' New value ' + str(event.getNewValue()))
         for l in self.logix:
             if sname in l['guardSet']:
-                #print('Event captured by logix ' + l['id'])
+                #print('Event was captured by logix ' + l['id'])
                 # Now evaluate the actual conditions
                 evaluation = self.evaluateGuards(l['guard'], l['formula'])
                 #print('Evaluated to: ' + str(evaluation))
-                if evaluation:
-                    print(' Logix ' + l['id'] + ' activated')
-                    self.takeActions(l['action'], l['id'])
+                self.takeActions(l['action'], l['id'], evaluation)
             else:
                 #print('Event not captured by logix ' + str(i))
                 pass
@@ -197,5 +199,4 @@ class JylogixListener(java.beans.PropertyChangeListener):
         for l in self.logix:
             evaluation = self.evaluateGuards(l['guard'], l['formula'])
             print('Logix startup ' + l['id'] + ' evaluated to: ' + str(evaluation))
-            if evaluation:
-                self.takeActions(l['action'], l['id'])
+            self.takeActions(l['action'], l['id'], evaluation)
