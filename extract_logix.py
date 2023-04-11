@@ -100,6 +100,8 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                     actions.append(('Turnout', caName, 'TOGGLE', optionModifier))
                 else:
                     print('Error unknown data for turnout action: ' + caData, logixSystemName, conditionalSystemName, csvName)
+            elif caType == '3':
+                actions.append(('SignalHead', caName, caString, optionModifier))
             elif caType == '9':
                 # Set sensor
                 if caData == '2':

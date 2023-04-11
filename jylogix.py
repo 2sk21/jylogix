@@ -79,6 +79,31 @@ class JylogixListener(java.beans.PropertyChangeListener):
             return 'INACTIVE'
         else:
             return ''
+        
+    # These states for signal heads are defined in NamedBeanBundle.properties
+    # The predefined constants like RED are defined in JmriScriptEngineManager.java
+    # where it is defined as SignalHead.RED
+    def convertSignalHeadState(self, s):
+        if s == 'Red':
+            return RED
+        elif s == 'Yellow':
+            return YELLOW
+        elif s == 'Green':
+            return GREEN
+        elif s == 'Lunar':
+            return LUNAR
+        elif s == 'Dark':
+            return DARK
+        elif s == 'Flashing Red':
+            return FLASHRED
+        elif s == 'Flashing Yellow':
+            return FLASHYELLOW
+        elif s == 'Flashing Green':
+            return FLASHGREEN
+        elif s == 'Flashing Lunar':
+            return FLASHLUNAR
+        else:
+            return DARK
 
     def evaluateGuard(self, guard):
         otype = guard[0]
@@ -177,7 +202,14 @@ class JylogixListener(java.beans.PropertyChangeListener):
                     else:
                         print('ERROR Unknown light state ' + a_state)
                 print( 'Logix ' + logixId + ' action set light ' + a_oid + ' to ' + a_state)
-
+            elif a_type == 'SignalHead' and self.interpretOption(a_option, evaluation):
+                signalHead = signals.getSignalHead(a_oid)
+                if signalHead is None:
+                    print('Error unknown signal head ' + a_oid)
+                else:
+                    appearance = self.convertSignalHeadState(a_state)
+                    signalHead.setAppearance(appearance)
+                    print( 'Logix ' + logixId + ' action set signal head ' + a_oid + ' to ' + a_state)
 
     # This method is required by java.beans.PropertyChangeListener
     def propertyChange(self, event):
