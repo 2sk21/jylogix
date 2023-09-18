@@ -125,6 +125,8 @@ def processLogixConditional(root, logixSystemName, logixUserName, conditionalSys
                     actions.append(('Light', caName, 'TOGGLE', optionModifier))
                 else:
                     print('Error unknown data for light action: ' + caData, logixSystemName, conditionalSystemName, csvName)
+            elif caType == '10':
+                return None
             else:
                 print('ERROR unhandled conditional action: ', caType, logixSystemName, conditionalSystemName)
     if len(guards) == 1:
@@ -155,7 +157,10 @@ def main(args):
             elif child.tag == 'logixConditional':
                 conditionalSystemName = child.attrib['systemName']
                 conditional = processLogixConditional(root, logixSystemName, logixUserName, conditionalSystemName)
-                logixList.append(conditional)
+                if conditional == None:
+                    print("Skipping conditional with timed action", logixUserName, conditionalSystemName)
+                else:
+                    logixList.append(conditional)
         logixVarName = logixUserName.replace('/', '')
         logixVarName = logixVarName.replace(' ', '')
         objectVarName = logixVarName + 'Listener'
